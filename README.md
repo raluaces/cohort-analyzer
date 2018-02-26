@@ -13,6 +13,12 @@ CSV Format for orders
 id,order_number,user_id,created
 
 
+Simple execution of this script would be as follows:
+```
+./analyze.py --customers customers.csv --orders orders.csv
+```  
+   
+  
 Sample help output from script:
 ```
 usage: analyze.py [-h] --customers CUSTOMERS --orders ORDERS
