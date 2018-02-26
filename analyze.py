@@ -126,9 +126,12 @@ print('Analyzing {} customers with {} orders'.format(total_orders, total_custome
 print('There are {}  {} day cohorts in this data'.format(number_of_cohorts_in_data, cohort_length.days))
 print('We are analyzing {} cohorts.'.format(number_of_cohorts))
 
+column_title_array = ['Cohort', 'Customers']
+
 table_rows = []
 # Loop through our cohorts of customers
 for cohort_count in range(number_of_cohorts):
+    print('')
     cohort_customer_ids = []
     # get our end and start dates for the cohort, if this is second or later run, add a day to start date
     if cohort_count != 0:
@@ -150,20 +153,22 @@ for cohort_count in range(number_of_cohorts):
 
     print('{} customers are in this cohort'.format(customer_count))
 
-    column_title_array = ['Cohort', 'Customers']
     # determine how many buckets are in this cohort loop iteration
     number_of_buckets = int((((first_customer + number_of_cohorts * cohort_length) - start_date) / bucket_length))
     print('{} buckets in cohort'.format(number_of_buckets))
     # loop through each bucket
     for x in range(number_of_buckets):
+        #  set our date range for bucket
         if x == 0:
             bucket_start_day = start_date + (x * bucket_length)
         else:
             bucket_start_day = start_date + (x * bucket_length) + timedelta(days=x)
+        # handle our bucket titles
         bucket_end_day = bucket_start_day + bucket_length
         bucket_name = '{}-{} days'.format((bucket_start_day - start_date).days, (bucket_end_day - start_date).days)
-        column_title_array.append(bucket_name)
-        number_of_columns = 2 + x
+        if cohort_count == 0:
+            print('.')
+            column_title_array.append(bucket_name)
         print(bucket_name)
         print(bucket_start_day)
         print(bucket_end_day)
@@ -173,15 +178,22 @@ for cohort_count in range(number_of_cohorts):
         first_timers = 0
         for order_id, order_data in orders.items():
             if order_data['user_id'] in cohort_customer_ids and order_data['user_id'] not in orderers_array:
-                if order_data['created'] < bucket_end_day and order_data['created'] > bucket_start_day:
-                    orderers_array.append(order_data['user_id'])
-        print('{} orderers'.format(orderers))
+                if order_data['created'] > bucket_start_day:
+                    if order_data['created'] < bucket_end_day:
+                        orderers_array.append(order_data['user_id'])
+                        orderers += 1
+                        if order_data['order_number'] == "1":
+                            first_timers += 1
+        percent_orderers = int(orderers * (100 / len(cohort_customer_ids)))
+        percent_first_time = int(first_timers * (100 / len(cohort_customer_ids)))
+        print('{}% orderers ({})'.format(percent_orderers, orderers))
+        print('{}% first time ({})'.format(percent_first_time, first_timers))
+
 
         orderers_percent = len(orderers_array) / (len(cohort_customer_ids)/ 100)
     # get the % of orderers in this bucket for this cohort
     # get the % of first time orderers from this cohort in this bucket
 
-
-print(number_of_columns, column_title_array)
+print(column_title_array)
 
 
