@@ -209,9 +209,7 @@ for cohort_count in range(number_of_cohorts):
             first_timers
         ))
     table_rows.append(row)
-
-print(column_title_array)
-print(table_rows)
+print('')
 table_printer(table_rows, column_title_array)
 
 
