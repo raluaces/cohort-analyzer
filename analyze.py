@@ -25,12 +25,18 @@ parser.add_argument(
     help='number of corhorts to analyze (default 8)',
     default=8
 )
+parser.add_argument(
+    '--bucket-length',
+    help='bucket length in days(default 6 days)',
+    default=6
+)
 
 args = parser.parse_args()
 customer_csv_file = args.customers
 order_csv_file = args.orders
 cohort_length = timedelta(days=args.cohort_length)
 number_of_cohorts = args.cohorts
+bucket_length = timedelta(days=args.bucket_length)
 
 # set our date format for parsing dates
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -85,8 +91,7 @@ def table_printer(array_of_row_arrays, column_title_list, column_length=16):
         first_row += unify_spaces(title) + '|'
     table_row_line = '|'
     for i in range(num_of_columns):
-        for x in range(column_length):
-            table_row_line += '-'
+        table_row_line += '-' * column_length
         table_row_line += '|'
     print(table_row_line)
     print(first_row)
@@ -120,10 +125,10 @@ print('Analyzing {} customers with {} orders'.format(total_orders, total_custome
 print('There are {}  {} day cohorts in this data'.format(number_of_cohorts_in_data, cohort_length.days))
 print('We are analyzing {} cohorts.'.format(number_of_cohorts))
 
+table_rows = []
 # Loop through our cohorts of customers
 for cohort_count in range(number_of_cohorts):
     cohort_customer_ids = []
-    print('cohort # {}'.format(cohort_count))
     # get our end and start dates for the cohort, if this is second or later run, add a day to start date
     if cohort_count != 0:
         prevent_overlap = 1
@@ -131,6 +136,9 @@ for cohort_count in range(number_of_cohorts):
         prevent_overlap = 0
     start_date = first_customer + (cohort_count * cohort_length) + timedelta(days=prevent_overlap)
     end_date = first_customer + (cohort_count * cohort_length) + cohort_length
+    cohort_name = start_date.strftime('%m/%d -')
+    cohort_name += end_date.strftime(' %m/%d')
+    print('cohort # {}     {}'.format(cohort_count, cohort_name))
     print('cohort start date:  {}'.format(start_date))
     print('cohort end date: {}'.format(end_date))
     # get all the customers in this cohort
@@ -148,5 +156,16 @@ for cohort_count in range(number_of_cohorts):
     print('{} customers are in this cohort'.format(customer_count))
     print('{}% are orderers '.format(orderers_percent))
 
+    print(end_date - first_customer)
+    # determine how many buckets are in this cohort loop iteration
+    number_of_buckets = int(((end_date - first_customer) / bucket_length))
+    for x in range(number_of_buckets):
+        bucket_start_day = x * bucket_length
+        bucket_end_day = bucket_start_day + bucket_length
+        bucket_name = '{}-{} days'.format(bucket_start_day.days, bucket_end_day.days)
+        print(bucket_name)
+    # loop through each bucket
+    # get the % of orderers in this bucket for this cohort
+    # get the % of first time orderers from this cohort in this bucket
 
 
