@@ -17,13 +17,18 @@ Simple execution of this script would be as follows:
 ```
 ./analyze.py --customers customers.csv --orders orders.csv
 ```  
-   
+
+Sample Execution of the script with increased cohorts plus html output
+```aidl
+./analyze.py --customers customers.csv --orders orders.csv --cohorts 10 --html-output output.html
+```
   
 Sample help output from script:
 ```
+$ ./analyze.py -h
 usage: analyze.py [-h] --customers CUSTOMERS --orders ORDERS
                   [--cohort-length COHORT_LENGTH] [--cohorts COHORTS]
-                  [--bucket-length BUCKET_LENGTH]
+                  [--bucket-length BUCKET_LENGTH] [--html-output HTML_OUTPUT]
 
 Perform customer order cohort analysis.
 
@@ -37,4 +42,7 @@ optional arguments:
   --cohorts COHORTS     number of corhorts to analyze (default 8)
   --bucket-length BUCKET_LENGTH
                         bucket length in days(default 6 days)
+  --html-output HTML_OUTPUT
+                        html file to output results table to)
+
 ```
