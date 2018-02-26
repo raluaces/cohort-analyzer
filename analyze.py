@@ -28,13 +28,13 @@ parser.add_argument(
 )
 parser.add_argument(
     '--bucket-length',
-    help='bucket length in days(default 6 days)',
+    help='bucket length in days (default 6 days)',
     type=int,
     default=6
 )
 parser.add_argument(
     '--html-output',
-    help='html file to output results table to)'
+    help='html file to output results table to'
 )
 
 args = parser.parse_args()
@@ -130,10 +130,9 @@ def table_printer(array_of_row_arrays, column_title_list, column_length=20):
     else:
         # handle logic for printing a table to cli if wanted
         # get our number of columns
-        num_of_columns = len(column_title_list)
         table_row_line = '|'
         # build a line and print the line
-        for i in range(num_of_columns):
+        for i in range(len(column_title_list)):
             table_row_line += '-' * column_length
             table_row_line += '|'
         print(table_row_line)
@@ -159,7 +158,6 @@ def table_printer(array_of_row_arrays, column_title_list, column_length=20):
                 row_printer(printable_row, second_row)
             else:
                 row_printer(printable_row)
-
 
 
 # get some totals for later
@@ -194,7 +192,7 @@ print('There are {}  {} day cohorts in this data'.format(number_of_cohorts_in_da
 # let the user know how many cohorts from data start we want to analyse
 print('We are analyzing {} cohorts.'.format(number_of_cohorts))
 
-# start are array of column titles
+# start our array of column titles to append buckets to later
 column_title_array = ['Cohort', 'Customers']
 
 table_rows = []
@@ -215,7 +213,6 @@ for cohort_count in range(number_of_cohorts):
             customer_count += 1
             cohort_customer_ids.append(customer_id)
 
-
     # prep a table row for this cohort
     row = [cohort_name, '{} customers'.format(customer_count)]
 
@@ -231,9 +228,11 @@ for cohort_count in range(number_of_cohorts):
             bucket_start_day = start_date + (x * bucket_length) + timedelta(days=x)
         # handle our bucket titles
         bucket_end_day = bucket_start_day + bucket_length
-        bucket_name = '{}-{} days'.format((bucket_start_day - start_date).days, (bucket_end_day - start_date).days)
         if cohort_count == 0:
-            column_title_array.append(bucket_name)
+            column_title_array.append('{}-{} days'.format(
+                (bucket_start_day - start_date).days,
+                (bucket_end_day - start_date).days)
+            )
         # cycle through our order data and find orders relevant to this cohort and bucket
         orderers_array = []
         orderers = 0
