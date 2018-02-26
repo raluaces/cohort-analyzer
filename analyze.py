@@ -154,18 +154,31 @@ for cohort_count in range(number_of_cohorts):
     # calculate percent of these customers that are orderers
     orderers_percent = len(orderers) / (len(cohort_customer_ids)/ 100)
     print('{} customers are in this cohort'.format(customer_count))
-    print('{}% are orderers '.format(orderers_percent))
 
-    print(end_date - first_customer)
+    column_title_array = ['Cohort', 'Customers']
     # determine how many buckets are in this cohort loop iteration
     number_of_buckets = int(((end_date - first_customer) / bucket_length))
-    for x in range(number_of_buckets):
-        bucket_start_day = x * bucket_length
-        bucket_end_day = bucket_start_day + bucket_length
-        bucket_name = '{}-{} days'.format(bucket_start_day.days, bucket_end_day.days)
-        print(bucket_name)
     # loop through each bucket
+    for x in range(number_of_buckets):
+        if x == 0:
+            bucket_start_day = first_customer + (x * bucket_length)
+        else:
+            bucket_start_day = first_customer + (x * bucket_length) + timedelta(days=x)
+        bucket_end_day = bucket_start_day + bucket_length
+        bucket_name = '{}-{} days'.format((bucket_start_day - first_customer).days, (bucket_end_day - first_customer).days)
+        column_title_array.append(bucket_name)
+        number_of_columns = 2 + x
+        print(bucket_name)
+        # cycle through our order data and find orders relevant to this cohort and bucket
+        #orderers = []
+        #for order_id, order_data in orders.items():
+        #    if order_data['user_id'] in cohort_customer_ids and order_data['user_id'] not in orderers:
+        #
+        #        orderers.append(order_data['user_id'])
+        # calculate percent of these customers that are orderers
+        #orderers_percent = len(orderers) / (len(cohort_customer_ids)/ 100)
     # get the % of orderers in this bucket for this cohort
     # get the % of first time orderers from this cohort in this bucket
+    print(number_of_columns, column_title_array)
 
 
