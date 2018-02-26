@@ -77,7 +77,7 @@ with open(order_csv_file, 'r') as csvfile:
 
 
 # our table printer for giving the user tables
-def table_printer(array_of_row_arrays, column_title_list, column_length=16):
+def table_printer(array_of_row_arrays, column_title_list, column_length=20):
     def unify_spaces(value):
         string = str(value)
         chars = len(string)
@@ -85,23 +85,46 @@ def table_printer(array_of_row_arrays, column_title_list, column_length=16):
             spaces = column_length - chars
             string += ' ' * spaces
         return string
+
+    def row_printer(row_string, second_row=False):
+        print(row_string)
+        if second_row:
+            print(second_row)
+        print(table_row_line)
+
+    #get our number of columns
     num_of_columns = len(column_title_list)
-    first_row = '|'
-    for title in column_title_list:
-        first_row += unify_spaces(title) + '|'
     table_row_line = '|'
+    # build a line and print the line
     for i in range(num_of_columns):
         table_row_line += '-' * column_length
         table_row_line += '|'
     print(table_row_line)
-    print(first_row)
-    print(table_row_line)
+
+    first_row = '|'
+    for title in column_title_list:
+        first_row += unify_spaces(title) + '|'
+    row_printer(first_row)
+
     for row in array_of_row_arrays:
+        second_row_bool = False
         printable_row = '|'
+        second_row = '|'
         for cell in row:
-            printable_row += unify_spaces(cell) + '|'
-        print(printable_row)
-        print(table_row_line)
+            if ',' in cell:
+                second_row_bool = True
+                cell = cell.split(',')
+                second_row += unify_spaces(cell[1]) + '|'
+                printable_row += unify_spaces(cell[0]) + '|'
+            else:
+                printable_row += unify_spaces(cell) + '|'
+                second_row += unify_spaces(' ') + '|'
+        if second_row_bool:
+            row_printer(printable_row, second_row)
+        else:
+            row_printer(printable_row)
+
+
 
 
 # get some totals for later
@@ -131,7 +154,6 @@ column_title_array = ['Cohort', 'Customers']
 table_rows = []
 # Loop through our cohorts of customers
 for cohort_count in range(number_of_cohorts):
-    print('')
     cohort_customer_ids = []
     # get our end and start dates for the cohort, if this is second or later run, add a day to start date
     if cohort_count != 0:
@@ -140,22 +162,20 @@ for cohort_count in range(number_of_cohorts):
         prevent_overlap = 0
     start_date = first_customer + (cohort_count * cohort_length) + timedelta(days=prevent_overlap)
     end_date = first_customer + (cohort_count * cohort_length) + cohort_length
-    cohort_name = start_date.strftime('%m/%d -')
-    cohort_name += end_date.strftime(' %m/%d')
-    print('cohort # {}     {}'.format(cohort_count, cohort_name))
-    print('cohort start date:  {}'.format(start_date))
-    print('cohort end date: {}'.format(end_date))
+    cohort_name = start_date.strftime('%m/%d-') + end_date.strftime('%m/%d')
     # get all the customers in this cohort
     for customer_id, customer_data in customers.items():
         if customer_data['created'] < end_date and customer_data['created'] > start_date:
             customer_count += 1
             cohort_customer_ids.append(customer_id)
 
-    print('{} customers are in this cohort'.format(customer_count))
+
+    # prep a table row for this cohort
+    row = [cohort_name, '{} customers'.format(customer_count)]
 
     # determine how many buckets are in this cohort loop iteration
     number_of_buckets = int((((first_customer + number_of_cohorts * cohort_length) - start_date) / bucket_length))
-    print('{} buckets in cohort'.format(number_of_buckets))
+
     # loop through each bucket
     for x in range(number_of_buckets):
         #  set our date range for bucket
@@ -167,11 +187,7 @@ for cohort_count in range(number_of_cohorts):
         bucket_end_day = bucket_start_day + bucket_length
         bucket_name = '{}-{} days'.format((bucket_start_day - start_date).days, (bucket_end_day - start_date).days)
         if cohort_count == 0:
-            print('.')
             column_title_array.append(bucket_name)
-        print(bucket_name)
-        print(bucket_start_day)
-        print(bucket_end_day)
         # cycle through our order data and find orders relevant to this cohort and bucket
         orderers_array = []
         orderers = 0
@@ -186,14 +202,16 @@ for cohort_count in range(number_of_cohorts):
                             first_timers += 1
         percent_orderers = int(orderers * (100 / len(cohort_customer_ids)))
         percent_first_time = int(first_timers * (100 / len(cohort_customer_ids)))
-        print('{}% orderers ({})'.format(percent_orderers, orderers))
-        print('{}% first time ({})'.format(percent_first_time, first_timers))
-
-
-        orderers_percent = len(orderers_array) / (len(cohort_customer_ids)/ 100)
-    # get the % of orderers in this bucket for this cohort
-    # get the % of first time orderers from this cohort in this bucket
+        row.append('{}% orderers ({}),{}% 1st time ({})'.format(
+            percent_orderers,
+            orderers,
+            percent_first_time,
+            first_timers
+        ))
+    table_rows.append(row)
 
 print(column_title_array)
+print(table_rows)
+table_printer(table_rows, column_title_array)
 
 
