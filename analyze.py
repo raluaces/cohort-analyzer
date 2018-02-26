@@ -111,7 +111,8 @@ total_customers = len(customers)
 first_order = orders[min(orders, key=lambda x: orders[x]['created'])]['created']
 last_order = orders[max(orders, key=lambda x: orders[x]['created'])]['created']
 
-first_customer = customers[min(customers, key=lambda x: customers[x]['created'])]['created']
+# get the start and end dates for our data for laters
+first_customer = customers[min(customers, key=lambda x: customers[x]['created'])]['created'].replace(hour=0, minute=0, second=0, microsecond=0)
 last_customer = customers[max(customers, key=lambda x: customers[x]['created'])]['created']
 
 # get the earliest order
@@ -146,39 +147,41 @@ for cohort_count in range(number_of_cohorts):
         if customer_data['created'] < end_date and customer_data['created'] > start_date:
             customer_count += 1
             cohort_customer_ids.append(customer_id)
-    # cycle through our order data and find orders relevant to this cohort
-    orderers = []
-    for order_id, order_data in orders.items():
-        if order_data['user_id'] in cohort_customer_ids and order_data['user_id'] not in orderers:
-            orderers.append(order_data['user_id'])
-    # calculate percent of these customers that are orderers
-    orderers_percent = len(orderers) / (len(cohort_customer_ids)/ 100)
+
     print('{} customers are in this cohort'.format(customer_count))
 
     column_title_array = ['Cohort', 'Customers']
     # determine how many buckets are in this cohort loop iteration
-    number_of_buckets = int(((end_date - first_customer) / bucket_length))
+    number_of_buckets = int((((first_customer + number_of_cohorts * cohort_length) - start_date) / bucket_length))
+    print('{} buckets in cohort'.format(number_of_buckets))
     # loop through each bucket
     for x in range(number_of_buckets):
         if x == 0:
-            bucket_start_day = first_customer + (x * bucket_length)
+            bucket_start_day = start_date + (x * bucket_length)
         else:
-            bucket_start_day = first_customer + (x * bucket_length) + timedelta(days=x)
+            bucket_start_day = start_date + (x * bucket_length) + timedelta(days=x)
         bucket_end_day = bucket_start_day + bucket_length
-        bucket_name = '{}-{} days'.format((bucket_start_day - first_customer).days, (bucket_end_day - first_customer).days)
+        bucket_name = '{}-{} days'.format((bucket_start_day - start_date).days, (bucket_end_day - start_date).days)
         column_title_array.append(bucket_name)
         number_of_columns = 2 + x
         print(bucket_name)
+        print(bucket_start_day)
+        print(bucket_end_day)
         # cycle through our order data and find orders relevant to this cohort and bucket
-        #orderers = []
-        #for order_id, order_data in orders.items():
-        #    if order_data['user_id'] in cohort_customer_ids and order_data['user_id'] not in orderers:
-        #
-        #        orderers.append(order_data['user_id'])
-        # calculate percent of these customers that are orderers
-        #orderers_percent = len(orderers) / (len(cohort_customer_ids)/ 100)
+        orderers_array = []
+        orderers = 0
+        first_timers = 0
+        for order_id, order_data in orders.items():
+            if order_data['user_id'] in cohort_customer_ids and order_data['user_id'] not in orderers_array:
+                if order_data['created'] < bucket_end_day and order_data['created'] > bucket_start_day:
+                    orderers_array.append(order_data['user_id'])
+        print('{} orderers'.format(orderers))
+
+        orderers_percent = len(orderers_array) / (len(cohort_customer_ids)/ 100)
     # get the % of orderers in this bucket for this cohort
     # get the % of first time orderers from this cohort in this bucket
-    print(number_of_columns, column_title_array)
+
+
+print(number_of_columns, column_title_array)
 
 
